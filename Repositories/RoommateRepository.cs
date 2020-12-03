@@ -23,7 +23,6 @@ WHERE Roommate.Id = @id; ";
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     Roommate roommate = null;
-                    Room room = null;
 
                     if(reader.Read())
                     {
