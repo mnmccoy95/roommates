@@ -205,6 +205,27 @@ namespace Roommates
                         Console.Write("Press any key to continue");
                         Console.ReadKey();
                         break;
+                    case ("Reassign chore"):
+                        List<Chore> assignedChores = choreRepo.GetAssignedChores();
+                        foreach (Chore c in assignedChores)
+                        {
+                            Console.WriteLine($"{c.Id} - {c.Name}");
+                        }
+                        Console.Write("Which chore would you like to reassign? ");
+                        int reassignChoreId = int.Parse(Console.ReadLine());
+                        List<Roommate> roommateAssigned = mateRepo.GetRoommateByChoreId(reassignChoreId);
+                        Console.WriteLine($"This chore is currently assigned to {roommateAssigned.FirstOrDefault().Firstname}");
+                        List<Roommate> allRoommates = mateRepo.GetAll();
+                        foreach(Roommate r in allRoommates)
+                        {
+                            Console.WriteLine($"{r.Id} - {r.Firstname}");
+                        }
+                        Console.Write("Who would you like to reassign this to? ");
+                        int reassignRoommateId = int.Parse(Console.ReadLine());
+                        choreRepo.UpdateChoreAssignment(reassignChoreId, reassignRoommateId);
+                        Console.WriteLine("Chore has been successfully reassigned");
+                        Console.WriteLine("Press any key to continue");
+                        break;
                     case ("Exit"):
                         runProgram = false;
                         break;
@@ -233,6 +254,7 @@ namespace Roommates
             "Update a chore",
             "Delete a chore",
             "Get chore counts",
+            "Reassign chore",
             "Exit"
         };
 

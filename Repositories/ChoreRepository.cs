@@ -117,6 +117,41 @@ namespace Roommates.Repositories
                 }
             }
         }
+
+        public List<Chore> GetAssignedChores()
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT * FROM Chore
+                                        LEFT JOIN RoommateChore rc on Chore.Id = rc.ChoreId
+                                        LEFT JOIN Roommate r on r.Id = rc.RoommateId
+                                        WHERE rc.Id IS NOT NULL";
+                    SqlDataReader reader = cmd.ExecuteReader();
+                    List<Chore> chores = new List<Chore>();
+                    while (reader.Read())
+                    {
+                        int idColumnPosition = reader.GetOrdinal("Id");
+                        int idValue = reader.GetInt32(idColumnPosition);
+                        int nameColumnPosition = reader.GetOrdinal("Name");
+                        string nameValue = reader.GetString(nameColumnPosition);
+
+                        Chore chore = new Chore
+                        {
+                            Id = idValue,
+                            Name = nameValue
+                        };
+
+                        chores.Add(chore);
+                    }
+                    reader.Close();
+                    return chores;
+                }
+            }
+        }
+
         public void AssignChore(int roommateId, int choreId)
         {
             using (SqlConnection conn = Connection)
@@ -179,7 +214,8 @@ namespace Roommates.Repositories
                 {
                     cmd.CommandText = @"SELECT Firstname, COUNT(*) AS NumberOfChores FROM Roommate
                                         LEFT JOIN RoommateChore rc on rc.RoommateId = Roommate.Id
-                                        GROUP BY(Roommate.Firstname); ";
+                                        WHERE rc.Id IS NOT NULL
+                                        GROUP BY(Roommate.Firstname)";
                     SqlDataReader reader = cmd.ExecuteReader();
                     List<ChoreCount> choreCounts = new List<ChoreCount>();
                     while (reader.Read())
@@ -199,6 +235,23 @@ namespace Roommates.Repositories
                     }
                     reader.Close();
                     return choreCounts;
+                }
+            }
+        }
+        public void UpdateChoreAssignment(int choreId, int roommateId)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"UPDATE RoommateChore
+                                        SET RoommateId = @roommateId
+                                        WHERE ChoreId = @choreId";
+                    cmd.Parameters.AddWithValue("@roommateId", roommateId);
+                    cmd.Parameters.AddWithValue("@choreId", choreId);
+
+                    cmd.ExecuteNonQuery();
                 }
             }
         }

@@ -72,5 +72,40 @@ WHERE Roommate.Id = @id; ";
                 }
             }
         }
+
+        public List<Roommate> GetRoommateByChoreId(int choreId)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT * FROM Roommate
+                                        LEFT JOIN RoommateChore rc on Roommate.Id = rc.RoommateId
+                                        LEFT JOIN Chore c on c.Id = rc.ChoreId
+                                        WHERE c.Id = @choreId; ";
+                    cmd.Parameters.AddWithValue("@choreId", choreId);
+                    SqlDataReader reader = cmd.ExecuteReader();
+                    List<Roommate> roommates = new List<Roommate>();
+                    while (reader.Read())
+                    {
+                        int idColumnPosition = reader.GetOrdinal("Id");
+                        int idValue = reader.GetInt32(idColumnPosition);
+                        int nameColumnPosition = reader.GetOrdinal("Firstname");
+                        string nameValue = reader.GetString(nameColumnPosition);
+
+                        Roommate roommate = new Roommate
+                        {
+                            Id = idValue,
+                            Firstname = nameValue
+                        };
+
+                        roommates.Add(roommate);
+                    }
+                    reader.Close();
+                    return roommates;
+                }
+            }
+        }
     }
 }
