@@ -169,5 +169,39 @@ namespace Roommates.Repositories
                 }
             }
         }
+
+        public List<ChoreCount> GetChoreCounts()
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using(SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT Firstname, COUNT(*) AS NumberOfChores FROM Roommate
+                                        LEFT JOIN RoommateChore rc on rc.RoommateId = Roommate.Id
+                                        GROUP BY(Roommate.Firstname); ";
+                    SqlDataReader reader = cmd.ExecuteReader();
+                    List<ChoreCount> choreCounts = new List<ChoreCount>();
+                    while (reader.Read())
+                    {
+                        int nameColumnPosition = reader.GetOrdinal("Firstname");
+                        string nameValue = reader.GetString(nameColumnPosition);
+                        int countColumnPosition = reader.GetOrdinal("NumberOfChores");
+                        int countValue = reader.GetInt32(countColumnPosition);
+
+                        ChoreCount choreCount = new ChoreCount
+                        {
+                            Firstname = nameValue,
+                            Count = countValue
+                        };
+
+                        choreCounts.Add(choreCount);
+                    }
+                    reader.Close();
+                    return choreCounts;
+                }
+            }
+        }
+
     }
 }
